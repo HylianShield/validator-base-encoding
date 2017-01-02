@@ -1,0 +1,47 @@
+{
+  "name": "hylianshield/validator-base-encoding",
+  "type": "library",
+  "description": "Base64, -32, -16 validation layer",
+  "license": "Apache-2.0",
+  "keywords": ["base64", "encoding", "validator"],
+  "authors": [
+    {
+      "name": "Jan-Marten de Boer",
+      "role": "Developer"
+    }
+  ],
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": "^7.0",
+    "hylianshield/validator-alphabet": "^1.0.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^5.7.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "HylianShield\\Validator\\BaseEncoding\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "HylianShield\\Tests\\Validator\\BaseEncoding\\": "tests"
+    }
+  },
+  "scripts": {
+    "test": "./vendor/bin/phpunit",
+    "coverage": "php -d zend_extension=xdebug.so ./vendor/bin/phpunit --coverage-text",
+    "coverage-html": [
+      "php -d zend_extension=xdebug.so ./vendor/bin/phpunit --coverage-html ./coverage",
+      "xdg-open ./coverage/index.html"
+    ]
+  },
+  "archive": {
+    "exclude": [
+      "tests",
+      ".gitignore",
+      "phpunit.xml"
+    ]
+  }
+}
