@@ -14,7 +14,7 @@ abstract class AbstractEncodingValidator extends AlphabetValidator implements
     private $isPaddingRequired;
 
     /** @var bool */
-    private $isCRLFAllowed;
+    private $isPartitioningAllowed;
 
     /** @var AlphabetInterface */
     private $alphabet;
@@ -23,15 +23,15 @@ abstract class AbstractEncodingValidator extends AlphabetValidator implements
      * Constructor.
      *
      * @param bool $requirePadding
-     * @param bool $allowCRLF
+     * @param bool $allowPartitions
      */
     public function __construct(
         bool $requirePadding = true,
-        bool $allowCRLF = false
+        bool $allowPartitions = false
     ) {
-        $this->alphabet          = $this->createAlphabet();
-        $this->isPaddingRequired = $requirePadding;
-        $this->isCRLFAllowed     = $allowCRLF;
+        $this->alphabet              = $this->createAlphabet();
+        $this->isPaddingRequired     = $requirePadding;
+        $this->isPartitioningAllowed = $allowPartitions;
 
         parent::__construct($this->alphabet);
     }
@@ -48,9 +48,9 @@ abstract class AbstractEncodingValidator extends AlphabetValidator implements
      *
      * @return bool
      */
-    public function isCRLFAllowed(): bool
+    public function isPartitioningAllowed(): bool
     {
-        return $this->isCRLFAllowed;
+        return $this->isPartitioningAllowed;
     }
 
     /**
@@ -86,6 +86,16 @@ abstract class AbstractEncodingValidator extends AlphabetValidator implements
     }
 
     /**
+     * Get the string sequence that denotes a partition in the encoded string.
+     *
+     * @return string
+     */
+    public function getPartitionSeparator(): string
+    {
+        return "\r\n";
+    }
+
+    /**
      * Get the name of the message definition.
      *
      * @return string
@@ -109,9 +119,9 @@ abstract class AbstractEncodingValidator extends AlphabetValidator implements
                 $this->isPaddingRequired()
                     ? 'require-padding'
                     : 'padding-optional',
-                $this->isCRLFAllowed()
-                    ? 'CRLF'
-                    : 'No-CRLF'
+                $this->isPartitioningAllowed()
+                    ? 'partitioning'
+                    : 'no-partitioning'
             );
         }
 
@@ -125,11 +135,14 @@ abstract class AbstractEncodingValidator extends AlphabetValidator implements
      *
      * @return bool
      */
-    public function validate($subject): bool
+    final public function validate($subject): bool
     {
-        return (
-            is_string($subject)
-            && $this->validateMessage($subject)
+        if (!is_string($subject)) {
+            return false;
+        }
+
+        return $this->validateMessage(
+            $this->cleanMessagePartitioning($subject)
         );
     }
 
@@ -140,10 +153,8 @@ abstract class AbstractEncodingValidator extends AlphabetValidator implements
      *
      * @return bool
      */
-    private function validateMessage(string $message): bool
+    protected function validateMessage(string $message): bool
     {
-        $message = $this->cleanMessageWhitespace($message);
-
         if ($this->isPaddingRequired()
             && !$this->validateByteLength($message)
         ) {
@@ -182,31 +193,32 @@ abstract class AbstractEncodingValidator extends AlphabetValidator implements
             $this->getPaddingCharacter()
         );
 
-        return in_array(
-            $this->getGroupSize() - strlen($finalGroup),
-            $this->getMaximumPaddingOccurrences(),
-            true
+        return (
+            empty($finalGroup)
+            || in_array(
+                $this->getGroupSize() - strlen($finalGroup),
+                $this->getMaximumPaddingOccurrences(),
+                true
+            )
         );
     }
 
     /**
-     * Clean the incoming message whitespace, based on rules in the given
+     * Clean the incoming message partitioning, based on rules in the given
      * definition.
      *
      * @param string $message
      *
      * @return string
      */
-    private function cleanMessageWhitespace(string $message): string
+    private function cleanMessagePartitioning(string $message): string
     {
-        $stripCharacters = [];
-
-        if ($this->isCRLFAllowed()) {
-            $stripCharacters[] = "\r\n";
-        }
-
-        if (count($stripCharacters) > 0) {
-            $message = str_replace($stripCharacters, '', $message);
+        if ($this->isPartitioningAllowed()) {
+            $message = str_replace(
+                $this->getPartitionSeparator(),
+                '',
+                $message
+            );
         }
 
         return $message;

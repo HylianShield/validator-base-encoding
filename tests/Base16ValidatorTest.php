@@ -37,7 +37,7 @@ class Base16ValidatorTest extends BaseEncodingValidatorTestCase
     /**
      * @return string[][]
      */
-    public function messageWithCRLFProvider(): array
+    public function messageWithPartitionProvider(): array
     {
         return [
             [''],

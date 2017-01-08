@@ -27,7 +27,7 @@ class Base32HexValidatorTest extends Base32ValidatorTest
     /**
      * @return string[][]
      */
-    public function messageWithCRLFProvider(): array
+    public function messageWithPartitionProvider(): array
     {
         return [
             [''],
