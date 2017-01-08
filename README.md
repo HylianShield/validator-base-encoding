@@ -13,7 +13,7 @@ implementation is supported.
 # Installation
 
 ```shell
-composer require hylianshield/validator-base-encoding:^1.0
+composer require hylianshield/validator-base-encoding:^2.0
 ```
 # Usage
 
