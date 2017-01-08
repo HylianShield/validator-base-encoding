@@ -15,12 +15,12 @@ class Base16Validator extends AbstractEncodingValidator
      * Unlike base 32 and base 64, no special padding is necessary since a
      * full code word is always available.
      *
-     * @param bool $allowCRLF
+     * @param bool $allowPartitions
      * @see   https://tools.ietf.org/html/rfc4648#section-8
      */
-    public function __construct(bool $allowCRLF = false)
+    public function __construct(bool $allowPartitions = false)
     {
-        parent::__construct(false, $allowCRLF);
+        parent::__construct(false, $allowPartitions);
     }
 
     /**

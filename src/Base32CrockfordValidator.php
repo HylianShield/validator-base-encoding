@@ -15,6 +15,16 @@ use HylianShield\Alphabet\AlphabetInterface;
 class Base32CrockfordValidator extends Base32Validator
 {
     /**
+     * Constructor.
+     *
+     * @param bool $allowPartitions
+     */
+    public function __construct($allowPartitions = true)
+    {
+        parent::__construct(true, $allowPartitions);
+    }
+
+    /**
      * Get the padding character.
      *
      * If the bit-length of the number to be encoded is not a multiple of 5 bits,
