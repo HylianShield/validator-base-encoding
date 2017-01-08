@@ -2,13 +2,14 @@
 namespace HylianShield\Tests\Validator\BaseEncoding;
 
 use HylianShield\Validator\BaseEncoding\AbstractEncodingValidator;
+use HylianShield\Validator\BaseEncoding\DefinitionInterface;
 use PHPUnit_Framework_TestCase;
 use ReflectionClass;
 
 abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
 {
     /** @var string */
-    private $identifierPattern = '/^base(64|32|16)(\w+)?\((require-)?padding(-optional)?,(No-)?CRLF\)$/';
+    private $identifierPattern = '/^base(64|32|16)(\w+)?\((require-)?padding(-optional)?,(no-)?partitioning\)$/';
 
     /** @var ReflectionClass */
     private $reflection;
@@ -31,7 +32,7 @@ abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
     /**
      * @return string[][]
      */
-    abstract public function messageWithCRLFProvider(): array;
+    abstract public function messageWithPartitionProvider(): array;
 
     /**
      * @return ReflectionClass
@@ -49,18 +50,18 @@ abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
 
     /**
      * @param bool $requirePadding
-     * @param bool $allowCRLF
+     * @param bool $allowPartitioning
      *
      * @return AbstractEncodingValidator
      */
     protected function createValidator(
         bool $requirePadding = true,
-        bool $allowCRLF = false
+        bool $allowPartitioning = false
     ): AbstractEncodingValidator {
         /** @var AbstractEncodingValidator $validator */
         $validator = $this->getReflection()->newInstance(
             $requirePadding,
-            $allowCRLF
+            $allowPartitioning
         );
 
         return $validator;
@@ -80,6 +81,60 @@ abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Clean the padding from the given message, according to the given
+     * definition.
+     *
+     * @param DefinitionInterface $definition
+     * @param string              $message
+     *
+     * @return string
+     */
+    protected function cleanPadding(
+        DefinitionInterface $definition,
+        string $message
+    ): string {
+        return rtrim($message, $definition->getPaddingCharacter());
+    }
+
+    /**
+     * Remove the partitioning symbols from the given message, according to
+     * the given definition.
+     *
+     * @param DefinitionInterface $definition
+     * @param string              $message
+     *
+     * @return string
+     */
+    protected function cleanPartitioning(
+        DefinitionInterface $definition,
+        string $message
+    ): string {
+        return str_replace(
+            $definition->getPartitionSeparator(),
+            '',
+            $message
+        );
+    }
+
+    /**
+     * Normalize the given message according to the given definition.
+     *
+     * @param DefinitionInterface $definition
+     * @param string              $message
+     *
+     * @return string
+     */
+    protected function normalizeMessage(
+        DefinitionInterface $definition,
+        string $message
+    ): string {
+        return $this->cleanPadding(
+            $definition,
+            $this->cleanPartitioning($definition, $message)
+        );
+    }
+
+    /**
      * @dataProvider messageWithPaddingProvider
      *
      * @param string $message
@@ -88,7 +143,7 @@ abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
      */
     public function testWithPaddingValidation(string $message)
     {
-        // Require padding, disallow CRLF.
+        // Require padding, disallow partitioning.
         $validator = $this->createValidator(true, false);
         $this->assertIdentifier($validator);
 
@@ -96,7 +151,11 @@ abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
             $validator->validate($message)
         );
 
-        if (!empty($message) && strlen($validator->getPaddingCharacter()) > 0) {
+        $normalized = $this->normalizeMessage($validator, $message);
+
+        if (strlen($normalized) > 0
+            && strlen($validator->getPaddingCharacter()) > 0
+        ) {
             $this->assertFalse(
                 $validator->validate(
                     $this->cleanPadding($validator, $message)
@@ -114,7 +173,7 @@ abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
      */
     public function testWithoutPaddingValidation(string $message)
     {
-        // Allow padding, disallow CRLF.
+        // Allow padding, disallow partitioning.
         $validator = $this->createValidator(false, false);
         $this->assertIdentifier($validator);
 
@@ -130,15 +189,15 @@ abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider messageWithCRLFProvider
+     * @dataProvider messageWithPartitionProvider
      *
      * @param string $message
      *
      * @return void
      */
-    public function testWithCRLFValidation(string $message)
+    public function testWithPartitionValidation(string $message)
     {
-        // Allow padding, allow CRLF.
+        // Allow padding, allow partitioning.
         $validator = $this->createValidator(true, true);
         $this->assertIdentifier($validator);
 
@@ -146,29 +205,17 @@ abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
             $validator->validate($message)
         );
 
-        if (!empty($message) && strlen($validator->getPaddingCharacter()) > 0) {
+        $normalized = $this->normalizeMessage($validator, $message);
+
+        if (strlen($normalized) > 0
+            && strlen($validator->getPaddingCharacter()) > 0
+        ) {
             $this->assertFalse(
                 $validator->validate(
                     $this->cleanPadding($validator, $message)
                 )
             );
         }
-    }
-
-    /**
-     * Clean the padding from the given message, according to the given
-     * validator.
-     *
-     * @param AbstractEncodingValidator $validator
-     * @param string                             $message
-     *
-     * @return string
-     */
-    private function cleanPadding(
-        AbstractEncodingValidator $validator,
-        string $message
-    ): string {
-        return rtrim($message, $validator->getPaddingCharacter());
     }
 
     /**

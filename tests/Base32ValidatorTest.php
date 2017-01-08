@@ -35,7 +35,7 @@ class Base32ValidatorTest extends BaseEncodingValidatorTestCase
     /**
      * @return string[][]
      */
-    public function messageWithCRLFProvider(): array
+    public function messageWithPartitionProvider(): array
     {
         return [
             [''],

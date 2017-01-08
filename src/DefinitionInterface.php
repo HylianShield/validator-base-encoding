@@ -43,11 +43,18 @@ interface DefinitionInterface
     public function getAlphabet(): AlphabetInterface;
 
     /**
-     * Whether occurrences of carriage returns are allowed.
+     * Whether the encoded string is allowed to be partitioned.
      *
      * @return bool
      */
-    public function isCRLFAllowed(): bool;
+    public function isPartitioningAllowed(): bool;
+
+    /**
+     * Get the string sequence that denotes a partition in the encoded string.
+     *
+     * @return string
+     */
+    public function getPartitionSeparator(): string;
 
     /**
      * Tells whether the padding in a message is required.
