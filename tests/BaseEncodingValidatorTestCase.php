@@ -135,6 +135,15 @@ abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @return void
+     */
+    public function testWithNonString()
+    {
+        $validator = $this->createValidator();
+        $this->assertFalse($validator->validate(12));
+    }
+
+    /**
      * @dataProvider messageWithPaddingProvider
      *
      * @param string $message
