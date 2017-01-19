@@ -14,6 +14,9 @@ use HylianShield\Alphabet\AlphabetInterface;
  */
 class Base32CrockfordValidator extends Base32Validator
 {
+    /** @var string[] */
+    const EXTENDED_ALPHABET = ['*', '~', '$', '=', 'Uu'];
+
     /**
      * Constructor.
      *
@@ -115,15 +118,35 @@ class Base32CrockfordValidator extends Base32Validator
      */
     protected function validateMessage(string $message): bool
     {
-        return parent::validateMessage(
-            // Strip off instances of a trailing check symbol.
-            // The check symbol will not be validated, as that requires a
-            // complete decoding of the message.
-            preg_replace(
-                '/[\*\~\$\=Uu]?$/',
-                '',
-                $message
-            )
-        );
+        static $pattern;
+
+        if ($pattern === null) {
+            $alphabet = array_merge(
+                iterator_to_array($this->getAlphabet()),
+                static::EXTENDED_ALPHABET
+            );
+
+            $pattern = sprintf(
+                '/^(([%s]{%d})*)([%s]?)$/',
+                preg_quote(
+                    implode('', array_slice($alphabet, 0, 32)),
+                    '/'
+                ),
+                $this->getGroupSize(),
+                preg_quote(
+                    implode('', $alphabet),
+                    '/'
+                )
+            );
+        }
+
+        // Strip off instances of a trailing check symbol.
+        // The check symbol will not be validated, as that requires a
+        // complete decoding of the message.
+        if (preg_match($pattern, $message, $matches)) {
+            $message = next($matches);
+        }
+
+        return parent::validateMessage($message);
     }
 }

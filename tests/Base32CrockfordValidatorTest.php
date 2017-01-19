@@ -34,10 +34,12 @@ class Base32CrockfordValidatorTest extends BaseEncodingValidatorTestCase
     {
         return [
             // Empty.
-            //[''],
+            [''],
             ['00000000'],
             ['00000000*'],
-            // Variations on check symbol.
+            // Padding within base alphabet.
+            ['0123456789ABCDEFGHJKMNPQRSTVW000A'],
+            // Variations on extended alphabet.
             ['0123456789ABCDEFGHJKMNPQRSTVW000'],
             ['0123456789ABCDEFGHJKMNPQRSTVW000*'],
             ['0123456789ABCDEFGHJKMNPQRSTVW000~'],
@@ -89,9 +91,11 @@ class Base32CrockfordValidatorTest extends BaseEncodingValidatorTestCase
     ): string {
         $checkSymbol = '';
 
-        if (preg_match('/^(.*?)([\*\~\$\=Uu]?)$/', $message, $matches)) {
+        $pattern = sprintf('/^((.{%d})*)(.?)$/', $definition->getGroupSize());
+
+        if (preg_match($pattern, $message, $matches)) {
             $message     = next($matches);
-            $checkSymbol = next($matches);
+            $checkSymbol = end($matches);
         }
 
         return parent::cleanPadding($definition, $message) . $checkSymbol;
@@ -109,12 +113,34 @@ class Base32CrockfordValidatorTest extends BaseEncodingValidatorTestCase
         DefinitionInterface $definition,
         string $message
     ): string {
-        // Remove the check symbol.
-        $message = preg_replace(
-            '/[\*\~\$\=Uu]?$/',
-            '',
-            $message
-        );
+        static $pattern;
+
+        if ($pattern === null) {
+            $alphabet = array_merge(
+                iterator_to_array($definition->getAlphabet()),
+                Base32CrockfordValidator::EXTENDED_ALPHABET
+            );
+
+            $pattern = sprintf(
+                '/^(([%s]{%d})*)([%s]?)$/',
+                preg_quote(
+                    implode('', array_slice($alphabet, 0, 32)),
+                    '/'
+                ),
+                $definition->getGroupSize(),
+                preg_quote(
+                    implode('', $alphabet),
+                    '/'
+                )
+            );
+        }
+
+        // Strip off instances of a trailing check symbol.
+        // The check symbol will not be validated, as that requires a
+        // complete decoding of the message.
+        if (preg_match($pattern, $message, $matches)) {
+            $message = next($matches);
+        }
 
         // Uppercase the alphabet.
         $message = strtoupper($message);

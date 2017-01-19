@@ -9,7 +9,7 @@ use ReflectionClass;
 abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
 {
     /** @var string */
-    private $identifierPattern = '/^base(64|32|16)(\w+)?\((require-)?padding(-optional)?,(no-)?partitioning\)$/';
+    const IDENTIFIER_PATTERN = '/^base(64|32|16)(\w+)?\((require-)?padding(-optional)?,(no-)?partitioning\)$/';
 
     /** @var ReflectionClass */
     private $reflection;
@@ -75,7 +75,7 @@ abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
     ) {
         /** @noinspection PhpMethodOrClassCallIsNotCaseSensitiveInspection */
         $this->assertRegexp(
-            $this->identifierPattern,
+            static::IDENTIFIER_PATTERN,
             $validator->getIdentifier()
         );
     }
@@ -190,11 +190,13 @@ abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
             $validator->validate($message)
         );
 
-        $this->assertTrue(
-            $validator->validate(
-                $this->cleanPadding($validator, $message)
-            )
-        );
+        if (!$validator->isPaddingRequired()) {
+            $this->assertTrue(
+                $validator->validate(
+                    $this->cleanPadding($validator, $message)
+                )
+            );
+        }
     }
 
     /**
@@ -213,6 +215,10 @@ abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
         $this->assertTrue(
             $validator->validate($message)
         );
+
+        if ($validator->isPaddingRequired()) {
+            return;
+        }
 
         $normalized = $this->normalizeMessage($validator, $message);
 
