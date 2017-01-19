@@ -38,22 +38,22 @@ class Base32CrockfordValidatorTest extends BaseEncodingValidatorTestCase
             ['00000000'],
             ['00000000*'],
             // Padding within base alphabet.
-            ['0123456789ABCDEFGHJKMNPQRSTVW000A'],
+            ['0000123456789ABCDEFGHJKMNPQRSTVWA'],
             // Variations on extended alphabet.
-            ['0123456789ABCDEFGHJKMNPQRSTVW000'],
-            ['0123456789ABCDEFGHJKMNPQRSTVW000*'],
-            ['0123456789ABCDEFGHJKMNPQRSTVW000~'],
-            ['0123456789ABCDEFGHJKMNPQRSTVW000$'],
-            ['0123456789ABCDEFGHJKMNPQRSTVW000='],
-            ['0123456789ABCDEFGHJKMNPQRSTVW000U'],
-            ['0123456789ABCDEFGHJKMNPQRSTVW000u'],
+            ['0000123456789ABCDEFGHJKMNPQRSTVW'],
+            ['0000123456789ABCDEFGHJKMNPQRSTVW*'],
+            ['0000123456789ABCDEFGHJKMNPQRSTVW~'],
+            ['0000123456789ABCDEFGHJKMNPQRSTVW$'],
+            ['0000123456789ABCDEFGHJKMNPQRSTVW='],
+            ['0000123456789ABCDEFGHJKMNPQRSTVWU'],
+            ['0000123456789ABCDEFGHJKMNPQRSTVWu'],
             // Variations on mis-pronunciations of characters.
-            ['o123456789ABCDEFGHJKMNPQRSTVW000*'],
-            ['O123456789ABCDEFGHJKMNPQRSTVW000*'],
-            ['0i23456789ABCDEFGHJKMNPQRSTVW000*'],
-            ['0I23456789ABCDEFGHJKMNPQRSTVW000*'],
-            ['0l23456789ABCDEFGHJKMNPQRSTVW000*'],
-            ['0L23456789ABCDEFGHJKMNPQRSTVW000*']
+            ['000o123456789ABCDEFGHJKMNPQRSTVW*'],
+            ['000O123456789ABCDEFGHJKMNPQRSTVW*'],
+            ['0000i23456789ABCDEFGHJKMNPQRSTVW*'],
+            ['0000I23456789ABCDEFGHJKMNPQRSTVW*'],
+            ['0000l23456789ABCDEFGHJKMNPQRSTVW*'],
+            ['0000L23456789ABCDEFGHJKMNPQRSTVW*']
         ];
     }
 
@@ -66,13 +66,13 @@ class Base32CrockfordValidatorTest extends BaseEncodingValidatorTestCase
             // Empty.
             [''],
             // Variations on check symbol.
-            ['012345-6789AB-CDEFGH-JKMNPQ-RSTVWX-Y0'],
-            ['012345-6789AB-CDEFGH-JKMNPQ-RSTVWX-Y0*'],
-            ['012345-6789AB-CDEFGH-JKMNPQ-RSTVWX-Y0~'],
-            ['012345-6789AB-CDEFGH-JKMNPQ-RSTVWX-Y0$'],
-            ['012345-6789AB-CDEFGH-JKMNPQ-RSTVWX-Y0='],
-            ['012345-6789AB-CDEFGH-JKMNPQ-RSTVWX-Y0U'],
-            ['012345-6789AB-CDEFGH-JKMNPQ-RSTVWX-Y0u']
+            ['0012345-6789AB-CDEFGH-JKMNPQ-RSTVWX-Y'],
+            ['0012345-6789AB-CDEFGH-JKMNPQ-RSTVWX-Y*'],
+            ['0012345-6789AB-CDEFGH-JKMNPQ-RSTVWX-Y~'],
+            ['0012345-6789AB-CDEFGH-JKMNPQ-RSTVWX-Y$'],
+            ['0012345-6789AB-CDEFGH-JKMNPQ-RSTVWX-Y='],
+            ['0012345-6789AB-CDEFGH-JKMNPQ-RSTVWX-YU'],
+            ['0012345-6789AB-CDEFGH-JKMNPQ-RSTVWX-Yu']
         ];
     }
 
@@ -153,5 +153,23 @@ class Base32CrockfordValidatorTest extends BaseEncodingValidatorTestCase
         );
 
         return parent::normalizeMessage($definition, $message);
+    }
+
+    /**
+     * @dataProvider messageWithPaddingProvider
+     *
+     * @param string $message
+     *
+     * @return void
+     */
+    public function testWithPaddingValidation(string $message)
+    {
+        // Require padding, disallow partitioning.
+        $validator = $this->createValidator(true, false);
+        $this->assertIdentifier($validator);
+
+        $this->assertTrue(
+            $validator->validate($message)
+        );
     }
 }

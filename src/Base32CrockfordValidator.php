@@ -110,6 +110,20 @@ class Base32CrockfordValidator extends Base32Validator
     }
 
     /**
+     * Get the maximum amount of occurrences for the padding character in any
+     * given message.
+     *
+     * Because padding is normally done from right to left and the current
+     * encoder uses right to left, the padding will not be trimmed by the
+     * validator.
+     * Since padding is required, regardless, the following always suffices,
+     */
+    public function getMaximumPaddingOccurrences(): array
+    {
+        return [0];
+    }
+
+    /**
      * Validate the incoming message against the message definition.
      *
      * @param string $message

@@ -70,7 +70,7 @@ abstract class BaseEncodingValidatorTestCase extends PHPUnit_Framework_TestCase
     /**
      * @param AbstractEncodingValidator $validator
      */
-    private function assertIdentifier(
+    protected function assertIdentifier(
         AbstractEncodingValidator $validator
     ) {
         /** @noinspection PhpMethodOrClassCallIsNotCaseSensitiveInspection */
