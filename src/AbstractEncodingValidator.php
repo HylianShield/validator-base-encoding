@@ -162,8 +162,20 @@ abstract class AbstractEncodingValidator extends AlphabetValidator implements
         }
 
         return parent::validate(
-            rtrim($message, $this->getPaddingCharacter())
+            $this->trimPadding($message)
         );
+    }
+
+    /**
+     * Trim the padding from a given message.
+     *
+     * @param string $message
+     *
+     * @return string
+     */
+    protected function trimPadding(string $message): string
+    {
+        return rtrim($message, $this->getPaddingCharacter());
     }
 
     /**

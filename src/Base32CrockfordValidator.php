@@ -120,7 +120,19 @@ class Base32CrockfordValidator extends Base32Validator
      */
     public function getMaximumPaddingOccurrences(): array
     {
-        return [0];
+        return range(0, $this->getGroupSize());
+    }
+
+    /**
+     * Trim the padding from a given message.
+     *
+     * @param string $message
+     *
+     * @return string
+     */
+    protected function trimPadding(string $message): string
+    {
+        return ltrim($message, $this->getPaddingCharacter());
     }
 
     /**
